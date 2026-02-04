@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FBA Inventory Dashboard</title>
+    <style>
+      :root {
+        --ink-900: #101418;
+        --ink-700: #27303a;
+        --ink-500: #49586a;
+        --muted: #7b8a9a;
+        --accent-1: #2f6bff;
+        --accent-2: #1fbba6;
+        --accent-3: #f4b83a;
+        --accent-4: #ed6a5a;
+        --surface: #ffffff;
+        --surface-2: #f4f7fb;
+        --surface-3: #eef2f7;
+        --shadow: 0 22px 50px rgba(10, 15, 20, 0.12);
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --grid-gap: 20px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Avenir Next", "Avenir", "Gill Sans", "Trebuchet MS", "Segoe UI", sans-serif;
+        color: var(--ink-900);
+        background: radial-gradient(circle at 15% 10%, #d9e6ff 0%, transparent 45%),
+          radial-gradient(circle at 90% 15%, #d7f5ef 0%, transparent 40%),
+          linear-gradient(160deg, #f7f9fc 0%, #ecf0f7 100%);
+        min-height: 100vh;
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 22px 80px;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+
+      header h1 {
+        font-size: clamp(28px, 3vw, 40px);
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: var(--grid-gap);
+        margin-bottom: 30px;
+      }
+
+      .store-card {
+        position: relative;
+        border: none;
+        padding: 22px;
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        animation: rise 0.7s ease forwards;
+        opacity: 0;
+      }
+
+      .store-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        border: 2px solid transparent;
+        transition: border-color 0.2s ease;
+        pointer-events: none;
+      }
+
+      .store-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 26px 60px rgba(10, 15, 20, 0.18);
+      }
+
+      .store-card[aria-expanded="true"]::after {
+        border-color: var(--accent-1);
+      }
+
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .flag-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        font-weight: 600;
+        color: var(--ink-700);
+        font-size: 13px;
+      }
+
+      .card-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+
+      .metric {
+        background: var(--surface-2);
+        padding: 12px;
+        border-radius: var(--radius-sm);
+      }
+
+      .metric span {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .metric strong {
+        font-size: 18px;
+        color: var(--ink-900);
+      }
+
+      .card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .card-foot .trend {
+        color: var(--accent-2);
+        font-weight: 600;
+      }
+
+      .panel {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 26px;
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: max-height 0.5s ease, opacity 0.4s ease, transform 0.4s ease;
+      }
+
+      .panel.open {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 7000px;
+      }
+
+      .panel-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .panel-header h2 {
+        margin: 0;
+        font-size: 22px;
+      }
+
+      .pill-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .pill {
+        background: var(--surface-3);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        color: var(--ink-700);
+        font-weight: 600;
+      }
+
+      .section {
+        margin-top: 22px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .section h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .health-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 12px;
+      }
+
+      .health-card {
+        background: var(--surface-2);
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        display: grid;
+        gap: 6px;
+      }
+
+      .health-card span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .health-card strong {
+        font-size: 18px;
+      }
+
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .filter-chip {
+        border: 1px solid #d8e1ef;
+        background: #fdfefe;
+        color: var(--ink-700);
+        font-size: 12px;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: 6px 12px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .filter-chip[aria-pressed="true"] {
+        background: var(--accent-1);
+        border-color: var(--accent-1);
+        color: #fff;
+      }
+
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      .table thead th {
+        text-align: left;
+        font-size: 12px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--muted);
+        padding: 10px 8px;
+        border-bottom: 1px solid #e2e7f0;
+      }
+
+      .table tbody td {
+        padding: 10px 8px;
+        border-bottom: 1px solid #edf1f6;
+        color: var(--ink-700);
+      }
+
+      .table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .status {
+        font-weight: 600;
+      }
+
+      .status.ok {
+        color: var(--accent-2);
+      }
+
+      .status.warn {
+        color: var(--accent-3);
+      }
+
+      .status.alert {
+        color: var(--accent-4);
+      }
+
+      .warning-box {
+        background: #fff6e5;
+        border: 1px solid #f5d28e;
+        border-radius: var(--radius-md);
+        padding: 12px 16px;
+        color: #9b5a00;
+        font-size: 14px;
+      }
+
+      .warning-box.empty {
+        background: #edf7f5;
+        border-color: #c2ece4;
+        color: #23786b;
+      }
+
+      .opportunity-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .opportunity {
+        background: #f0f5ff;
+        border: 1px solid #d6e3ff;
+        color: #1e3d8f;
+        padding: 10px 12px;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+      }
+
+      .fade-in {
+        animation: fade 0.5s ease forwards;
+        opacity: 0;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
+        header {
+          text-align: left;
+        }
+
+        .panel {
+          padding: 20px;
+        }
+
+        .table thead {
+          display: none;
+        }
+
+        .table tbody td {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 10px 0;
+        }
+
+        .table tbody tr {
+          border-bottom: 1px solid #edf1f6;
+        }
+
+        .table tbody td::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: var(--muted);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>FBA Inventory Control Tower</h1>
+        <p>Four marketplaces. One pulse. Tap a card to dive into inventory health, inbound flow, and risk signals.</p>
+      </header>
+
+      <div class="cards" id="cards"></div>
+
+      <div id="panels"></div>
+    </div>
+
+    <script>
+      const stores = [
+        {
+          code: "US",
+          name: "United States",
+          marketplace: "Amazon US",
+          currency: "USD",
+          ipiScore: 602,
+          storageUtilization: 68,
+          agingRisk: 12400,
+          strandedUnits: 185,
+          suppressedUnits: 96,
+          inventory: [
+            { sku: "USB-CHARGE-01", title: "RapidCharge USB-C Cable", onHand: 1450, reserved: 120, inbound: 320, sales7d: 280, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.28, margin: 0.34 },
+            { sku: "LED-LAMP-02", title: "Aurora LED Desk Lamp", onHand: 380, reserved: 42, inbound: 120, sales7d: 96, age90plus: false, stranded: 18, suppressed: 0, sellThrough: 0.19, margin: 0.42 },
+            { sku: "KITCH-JAR-03", title: "Glass Storage Jar Set", onHand: 210, reserved: 18, inbound: 0, sales7d: 42, age90plus: true, stranded: 0, suppressed: 12, sellThrough: 0.12, margin: 0.26 },
+            { sku: "FIT-ROLL-04", title: "Compact Foam Roller", onHand: 95, reserved: 8, inbound: 200, sales7d: 52, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.31, margin: 0.38 },
+            { sku: "TRAVEL-MUG-05", title: "Insulated Travel Mug", onHand: 60, reserved: 6, inbound: 0, sales7d: 35, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.36, margin: 0.29 }
+          ],
+          shipments: [
+            { id: "FBA15XH", status: "In Transit", eta: "Feb 09", units: 420 },
+            { id: "FBA22QM", status: "Delivered", eta: "Feb 02", units: 300 }
+          ],
+          warnings: ["Two ASINs flagged for hazmat review. Response due in 5 days."]
+        },
+        {
+          code: "UK",
+          name: "United Kingdom",
+          marketplace: "Amazon UK",
+          currency: "GBP",
+          ipiScore: 556,
+          storageUtilization: 74,
+          agingRisk: 6200,
+          strandedUnits: 42,
+          suppressedUnits: 18,
+          inventory: [
+            { sku: "USB-CHARGE-01", title: "RapidCharge USB-C Cable", onHand: 620, reserved: 60, inbound: 150, sales7d: 112, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.24, margin: 0.31 },
+            { sku: "LED-LAMP-02", title: "Aurora LED Desk Lamp", onHand: 210, reserved: 30, inbound: 0, sales7d: 58, age90plus: true, stranded: 12, suppressed: 0, sellThrough: 0.15, margin: 0.39 },
+            { sku: "KITCH-JAR-03", title: "Glass Storage Jar Set", onHand: 95, reserved: 12, inbound: 120, sales7d: 30, age90plus: false, stranded: 0, suppressed: 8, sellThrough: 0.11, margin: 0.23 },
+            { sku: "FIT-ROLL-04", title: "Compact Foam Roller", onHand: 48, reserved: 5, inbound: 60, sales7d: 21, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.28, margin: 0.36 }
+          ],
+          shipments: [
+            { id: "LHR88Z", status: "Receiving", eta: "Feb 05", units: 180 }
+          ],
+          warnings: []
+        },
+        {
+          code: "CA",
+          name: "Canada",
+          marketplace: "Amazon CA",
+          currency: "CAD",
+          ipiScore: 523,
+          storageUtilization: 63,
+          agingRisk: 4100,
+          strandedUnits: 78,
+          suppressedUnits: 26,
+          inventory: [
+            { sku: "USB-CHARGE-01", title: "RapidCharge USB-C Cable", onHand: 410, reserved: 38, inbound: 80, sales7d: 70, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.22, margin: 0.33 },
+            { sku: "LED-LAMP-02", title: "Aurora LED Desk Lamp", onHand: 180, reserved: 16, inbound: 60, sales7d: 40, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.2, margin: 0.37 },
+            { sku: "KITCH-JAR-03", title: "Glass Storage Jar Set", onHand: 45, reserved: 6, inbound: 100, sales7d: 24, age90plus: false, stranded: 10, suppressed: 6, sellThrough: 0.14, margin: 0.21 },
+            { sku: "TRAVEL-MUG-05", title: "Insulated Travel Mug", onHand: 30, reserved: 4, inbound: 0, sales7d: 20, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.29, margin: 0.25 }
+          ],
+          shipments: [
+            { id: "YYZ40D", status: "In Transit", eta: "Feb 10", units: 140 },
+            { id: "YYZ18K", status: "Planned", eta: "Feb 15", units: 220 }
+          ],
+          warnings: ["Shipment YYZ40D missing carton content feed. Fix before delivery."]
+        },
+        {
+          code: "AU",
+          name: "Australia",
+          marketplace: "Amazon AU",
+          currency: "AUD",
+          ipiScore: 487,
+          storageUtilization: 58,
+          agingRisk: 2100,
+          strandedUnits: 22,
+          suppressedUnits: 9,
+          inventory: [
+            { sku: "USB-CHARGE-01", title: "RapidCharge USB-C Cable", onHand: 280, reserved: 20, inbound: 110, sales7d: 36, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.18, margin: 0.3 },
+            { sku: "LED-LAMP-02", title: "Aurora LED Desk Lamp", onHand: 60, reserved: 6, inbound: 40, sales7d: 18, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.16, margin: 0.35 },
+            { sku: "KITCH-JAR-03", title: "Glass Storage Jar Set", onHand: 32, reserved: 4, inbound: 0, sales7d: 16, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.12, margin: 0.2 },
+            { sku: "FIT-ROLL-04", title: "Compact Foam Roller", onHand: 25, reserved: 3, inbound: 80, sales7d: 12, age90plus: false, stranded: 0, suppressed: 0, sellThrough: 0.2, margin: 0.32 }
+          ],
+          shipments: [
+            { id: "SYD99P", status: "In Transit", eta: "Feb 12", units: 140 }
+          ],
+          warnings: []
+        }
+      ];
+
+      const cardsEl = document.getElementById("cards");
+      const panelsEl = document.getElementById("panels");
+      const formatNumber = (value) => new Intl.NumberFormat().format(value);
+      const formatDays = (value) => (value === Infinity ? "∞" : Math.round(value));
+      const formatPercent = (value) => `${Math.round(value * 100)}%`;
+      const formatCurrency = (value, currency) =>
+        new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+
+      function getVelocity(item) {
+        return item.sales7d / 7;
+      }
+
+      function getDaysCover(item) {
+        const velocity = getVelocity(item);
+        if (!velocity) return Infinity;
+        return item.onHand / velocity;
+      }
+
+      function getReorderUnits(item, targetDays = 120) {
+        const velocity = getVelocity(item);
+        if (!velocity) return 0;
+        const targetUnits = targetDays * velocity;
+        const netUnits = item.onHand + item.inbound;
+        return Math.max(0, Math.ceil(targetUnits - netUnits));
+      }
+
+      function computeMetrics(store) {
+        const totalOnHand = store.inventory.reduce((sum, item) => sum + item.onHand, 0);
+        const totalInbound = store.inventory.reduce((sum, item) => sum + item.inbound, 0);
+        const lowSkus = store.inventory.filter((item) => getDaysCover(item) < 90).length;
+        const agedUnits = store.inventory.filter((item) => item.age90plus).reduce((sum, item) => sum + item.onHand, 0);
+        const totalSales7d = store.inventory.reduce((sum, item) => sum + item.sales7d, 0);
+        const stranded = store.inventory.reduce((sum, item) => sum + item.stranded, 0);
+        const suppressed = store.inventory.reduce((sum, item) => sum + item.suppressed, 0);
+        const averageSellThrough = store.inventory.reduce((sum, item) => sum + item.sellThrough, 0) / store.inventory.length;
+        const averageMargin = store.inventory.reduce((sum, item) => sum + item.margin, 0) / store.inventory.length;
+        return {
+          totalOnHand,
+          totalInbound,
+          lowSkus,
+          agedUnits,
+          totalSales7d,
+          stranded,
+          suppressed,
+          averageSellThrough,
+          averageMargin
+        };
+      }
+
+      function buildTransferOpportunities(allStores) {
+        const skuMap = new Map();
+        allStores.forEach((store) => {
+          store.inventory.forEach((item) => {
+            if (!skuMap.has(item.sku)) skuMap.set(item.sku, []);
+            skuMap.get(item.sku).push({
+              store: store.code,
+              title: item.title,
+              daysCover: getDaysCover(item)
+            });
+          });
+        });
+
+        const opportunitiesByStore = new Map();
+        allStores.forEach((store) => opportunitiesByStore.set(store.code, []));
+
+        skuMap.forEach((records, sku) => {
+          records.forEach((record) => {
+            records.forEach((other) => {
+              if (record.store === other.store) return;
+              if (record.daysCover > 180 && other.daysCover < 45) {
+                opportunitiesByStore
+                  .get(record.store)
+                  .push(`${sku} · ${record.title} → Potential transfer to ${other.store} (low cover)`);
+              }
+            });
+          });
+        });
+
+        return opportunitiesByStore;
+      }
+
+      function createCard(store, index) {
+        const metrics = computeMetrics(store);
+        const button = document.createElement("button");
+        button.className = "store-card";
+        button.type = "button";
+        button.setAttribute("aria-expanded", "false");
+        button.style.animationDelay = `${index * 0.08}s`;
+        button.innerHTML = `
+          <div class="card-top">
+            <span class="flag-pill">${store.marketplace}</span>
+            <span class="status ${metrics.lowSkus > 0 ? "warn" : "ok"}">${metrics.lowSkus} low</span>
+          </div>
+          <div class="card-metrics">
+            <div class="metric">
+              <span>On-hand units</span>
+              <strong>${formatNumber(metrics.totalOnHand)}</strong>
+            </div>
+            <div class="metric">
+              <span>Inbound units</span>
+              <strong>${formatNumber(metrics.totalInbound)}</strong>
+            </div>
+            <div class="metric">
+              <span>IPI score</span>
+              <strong>${formatNumber(store.ipiScore)}</strong>
+            </div>
+            <div class="metric">
+              <span>Storage used</span>
+              <strong>${store.storageUtilization}%</strong>
+            </div>
+          </div>
+          <div class="card-foot">
+            <span>7-day sales: ${formatNumber(metrics.totalSales7d)}</span>
+            <span class="trend">Tap to expand</span>
+          </div>
+        `;
+        return button;
+      }
+
+      function createPanel(store, opportunitiesByStore) {
+        const metrics = computeMetrics(store);
+        const panel = document.createElement("section");
+        panel.className = "panel";
+        panel.id = `panel-${store.code}`;
+        panel.innerHTML = `
+          <div class="panel-header">
+            <h2>${store.marketplace} · ${store.name}</h2>
+            <div class="pill-row">
+              <span class="pill">On-hand ${formatNumber(metrics.totalOnHand)}</span>
+              <span class="pill">Inbound ${formatNumber(metrics.totalInbound)}</span>
+              <span class="pill">Low SKUs ${formatNumber(metrics.lowSkus)}</span>
+              <span class="pill">7-day sales ${formatNumber(metrics.totalSales7d)}</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Marketplace Health</h3>
+            <div class="health-grid">
+              <div class="health-card"><span>IPI Score</span><strong>${formatNumber(store.ipiScore)}</strong></div>
+              <div class="health-card"><span>Storage Use</span><strong>${store.storageUtilization}%</strong></div>
+              <div class="health-card"><span>Stranded Units</span><strong>${formatNumber(metrics.stranded)}</strong></div>
+              <div class="health-card"><span>Suppressed Units</span><strong>${formatNumber(metrics.suppressed)}</strong></div>
+              <div class="health-card"><span>Aging Fee Risk</span><strong>${formatCurrency(store.agingRisk, "USD")}</strong></div>
+              <div class="health-card"><span>Account Warnings</span><strong>${formatNumber(store.warnings.length)}</strong></div>
+              <div class="health-card"><span>Avg Sell-through</span><strong>${formatPercent(metrics.averageSellThrough)}</strong></div>
+              <div class="health-card"><span>Avg Contribution</span><strong>${formatPercent(metrics.averageMargin)}</strong></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h3>Transfer Opportunities</h3>
+            ${buildTransferSection(store.code, opportunitiesByStore)}
+          </div>
+
+          <div class="section">
+            <h3>Inventory Snapshot</h3>
+            <div class="filter-row" data-panel-filters="${store.code}">
+              <button class="filter-chip" type="button" data-filter="low" aria-pressed="false">Low cover &lt; 90d</button>
+              <button class="filter-chip" type="button" data-filter="aged" aria-pressed="false">Aged 90+</button>
+              <button class="filter-chip" type="button" data-filter="inbound" aria-pressed="false">Inbound &gt; 0</button>
+              <button class="filter-chip" type="button" data-filter="stranded" aria-pressed="false">Stranded &gt; 0</button>
+              <button class="filter-chip" type="button" data-filter="suppressed" aria-pressed="false">Suppressed &gt; 0</button>
+            </div>
+            ${buildInventoryTable(store.inventory)}
+          </div>
+
+          <div class="section">
+            <h3>Inbound Shipments</h3>
+            ${buildShipmentsTable(store.shipments)}
+          </div>
+
+          <div class="section">
+            <h3>Account Health Warnings</h3>
+            ${buildWarnings(store.warnings)}
+          </div>
+
+          <div class="section">
+            <h3>Low Inventory (under 90 days of cover)</h3>
+            ${buildLowInventoryTable(store.inventory)}
+          </div>
+        `;
+        return panel;
+      }
+
+      function buildTransferSection(storeCode, opportunitiesByStore) {
+        const list = opportunitiesByStore.get(storeCode) || [];
+        if (!list.length) {
+          return `<div class="warning-box empty">No cross-market transfer opportunities flagged.</div>`;
+        }
+        return `
+          <div class="opportunity-list">
+            ${list.map((entry) => `<div class="opportunity">${entry}</div>`).join("")}
+          </div>
+        `;
+      }
+
+      function buildInventoryTable(items) {
+        return `
+          <table class="table" data-inventory-table>
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Title</th>
+                <th>On hand</th>
+                <th>Reserved</th>
+                <th>Inbound</th>
+                <th>7d sales</th>
+                <th>Days of cover</th>
+                <th>Reorder</th>
+                <th>Sell-through</th>
+                <th>Margin</th>
+                <th>Stranded</th>
+                <th>Suppressed</th>
+                <th>Age 90+</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items
+                .map((item) => {
+                  const daysCover = getDaysCover(item);
+                  const reorderUnits = getReorderUnits(item, 120);
+                  const isLow = daysCover < 90;
+                  return `
+                    <tr
+                      data-low="${isLow}"
+                      data-aged="${item.age90plus}"
+                      data-inbound="${item.inbound > 0}"
+                      data-stranded="${item.stranded > 0}"
+                      data-suppressed="${item.suppressed > 0}"
+                    >
+                      <td data-label="SKU">${item.sku}</td>
+                      <td data-label="Title">${item.title}</td>
+                      <td data-label="On hand">${formatNumber(item.onHand)}</td>
+                      <td data-label="Reserved">${formatNumber(item.reserved)}</td>
+                      <td data-label="Inbound">${formatNumber(item.inbound)}</td>
+                      <td data-label="7d sales">${formatNumber(item.sales7d)}</td>
+                      <td data-label="Days of cover">${formatDays(daysCover)}</td>
+                      <td data-label="Reorder">${formatNumber(reorderUnits)}</td>
+                      <td data-label="Sell-through">${formatPercent(item.sellThrough)}</td>
+                      <td data-label="Margin">${formatPercent(item.margin)}</td>
+                      <td data-label="Stranded">${formatNumber(item.stranded)}</td>
+                      <td data-label="Suppressed">${formatNumber(item.suppressed)}</td>
+                      <td data-label="Age 90+">${item.age90plus ? "Yes" : "No"}</td>
+                    </tr>
+                  `;
+                })
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function buildLowInventoryTable(items) {
+        const lowItems = items.filter((item) => getDaysCover(item) < 90);
+        if (!lowItems.length) {
+          return `<div class="warning-box empty">No SKUs below 90 days of cover.</div>`;
+        }
+        return `
+          <table class="table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Title</th>
+                <th>On hand</th>
+                <th>7d sales</th>
+                <th>Days of cover</th>
+                <th>Reorder</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${lowItems
+                .map((item) => {
+                  const daysCover = getDaysCover(item);
+                  const reorderUnits = getReorderUnits(item, 120);
+                  return `
+                    <tr>
+                      <td data-label="SKU">${item.sku}</td>
+                      <td data-label="Title">${item.title}</td>
+                      <td data-label="On hand">${formatNumber(item.onHand)}</td>
+                      <td data-label="7d sales">${formatNumber(item.sales7d)}</td>
+                      <td data-label="Days of cover">${formatDays(daysCover)}</td>
+                      <td data-label="Reorder">${formatNumber(reorderUnits)}</td>
+                    </tr>
+                  `;
+                })
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function buildShipmentsTable(shipments) {
+        if (!shipments.length) {
+          return `<div class="warning-box empty">No inbound shipments on the way.</div>`;
+        }
+        return `
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Shipment ID</th>
+                <th>Status</th>
+                <th>ETA</th>
+                <th>Units</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${shipments
+                .map(
+                  (shipment) => `
+                    <tr>
+                      <td data-label="Shipment ID">${shipment.id}</td>
+                      <td data-label="Status">${shipment.status}</td>
+                      <td data-label="ETA">${shipment.eta}</td>
+                      <td data-label="Units">${formatNumber(shipment.units)}</td>
+                    </tr>
+                  `
+                )
+                .join("")}
+            </tbody>
+          </table>
+        `;
+      }
+
+      function buildWarnings(warnings) {
+        if (!warnings.length) {
+          return `<div class="warning-box empty">No active account health warnings.</div>`;
+        }
+        return warnings
+          .map((warning) => `<div class="warning-box">${warning}</div>`)
+          .join("");
+      }
+
+      function wireFilters(panel) {
+        const filterRow = panel.querySelector("[data-panel-filters]");
+        if (!filterRow) return;
+        const chips = Array.from(filterRow.querySelectorAll(".filter-chip"));
+        const rows = Array.from(panel.querySelectorAll("[data-inventory-table] tbody tr"));
+
+        const applyFilters = () => {
+          const active = chips.filter((chip) => chip.getAttribute("aria-pressed") === "true").map((chip) => chip.dataset.filter);
+          rows.forEach((row) => {
+            const visible = active.every((filter) => row.dataset[filter] === "true");
+            row.style.display = visible ? "" : "none";
+          });
+        };
+
+        chips.forEach((chip) => {
+          chip.addEventListener("click", () => {
+            const pressed = chip.getAttribute("aria-pressed") === "true";
+            chip.setAttribute("aria-pressed", pressed ? "false" : "true");
+            applyFilters();
+          });
+        });
+      }
+
+      function render() {
+        const opportunitiesByStore = buildTransferOpportunities(stores);
+
+        stores.forEach((store, index) => {
+          const card = createCard(store, index);
+          cardsEl.appendChild(card);
+
+          const panel = createPanel(store, opportunitiesByStore);
+          panelsEl.appendChild(panel);
+          wireFilters(panel);
+
+          card.addEventListener("click", () => {
+            const expanded = card.getAttribute("aria-expanded") === "true";
+            document.querySelectorAll(".store-card").forEach((btn) => btn.setAttribute("aria-expanded", "false"));
+            document.querySelectorAll(".panel").forEach((item) => item.classList.remove("open"));
+
+            if (!expanded) {
+              card.setAttribute("aria-expanded", "true");
+              panel.classList.add("open");
+              panel.querySelectorAll(".section").forEach((section, idx) => {
+                section.classList.add("fade-in");
+                section.style.animationDelay = `${idx * 0.08}s`;
+              });
+              panel.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>
