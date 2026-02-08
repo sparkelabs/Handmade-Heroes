@@ -67,7 +67,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
         gap: var(--grid-gap);
-        margin-bottom: 30px;
+        margin-bottom: 16px;
       }
 
       .store-card {
@@ -81,6 +81,7 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+        height: 100%;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
         animation: rise 0.7s ease forwards;
         opacity: 0;
@@ -154,6 +155,7 @@
         align-items: center;
         font-size: 13px;
         color: var(--muted);
+        margin-top: auto;
       }
 
       .card-foot .trend {
@@ -164,9 +166,9 @@
       .panel {
         background: var(--surface);
         border-radius: var(--radius-lg);
-        padding: 26px;
         box-shadow: var(--shadow);
-        margin-bottom: 20px;
+        margin-bottom: 0;
+        padding: 0;
         overflow: hidden;
         max-height: 0;
         opacity: 0;
@@ -178,6 +180,13 @@
         opacity: 1;
         transform: translateY(0);
         max-height: 7000px;
+        margin-bottom: 16px;
+        padding: 26px;
+      }
+
+      .panel-content {
+        display: grid;
+        gap: 12px;
       }
 
       .panel-header {
@@ -210,9 +219,12 @@
       }
 
       .section {
-        margin-top: 22px;
         display: grid;
-        gap: 12px;
+        gap: 10px;
+        background: var(--surface);
+        border: 1px solid #e7ecf4;
+        border-radius: var(--radius-md);
+        padding: 14px;
       }
 
       .section h3 {
@@ -267,10 +279,93 @@
         color: #fff;
       }
 
+      .refresh-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .refresh-note {
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .refresh-status {
+        color: var(--ink-500);
+        font-size: 12px;
+      }
+
+      .refresh-button {
+        border: none;
+        border-radius: 999px;
+        padding: 10px 16px;
+        background: var(--accent-1);
+        color: #fff;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .refresh-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(47, 107, 255, 0.25);
+      }
+
+      .refresh-button:disabled {
+        background: #c9d4ea;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+
       .table {
         width: 100%;
         border-collapse: collapse;
         font-size: 14px;
+      }
+
+      .table-block {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .table-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .expand-button {
+        border: 1px solid #d7e0ee;
+        background: #f7f9fd;
+        color: var(--ink-600);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .expand-button:hover {
+        border-color: var(--accent-1);
+        color: var(--accent-1);
+        background: #f0f4ff;
+      }
+
+      .expand-button .arrow {
+        transition: transform 0.2s ease;
+      }
+
+      .expand-button[aria-expanded="true"] .arrow {
+        transform: rotate(180deg);
       }
 
       .table thead th {
@@ -322,20 +417,6 @@
         background: #edf7f5;
         border-color: #c2ece4;
         color: #23786b;
-      }
-
-      .opportunity-list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .opportunity {
-        background: #f0f5ff;
-        border: 1px solid #d6e3ff;
-        color: #1e3d8f;
-        padding: 10px 12px;
-        border-radius: var(--radius-sm);
-        font-size: 14px;
       }
 
       .fade-in {
@@ -410,7 +491,7 @@
     </div>
 
     <script>
-      const stores = [
+      const mockStores = [
         {
           code: "US",
           name: "United States",
@@ -432,7 +513,8 @@
             { id: "FBA15XH", status: "In Transit", eta: "Feb 09", units: 420 },
             { id: "FBA22QM", status: "Delivered", eta: "Feb 02", units: 300 }
           ],
-          warnings: ["Two ASINs flagged for hazmat review. Response due in 5 days."]
+          warnings: ["Two ASINs flagged for hazmat review. Response due in 5 days."],
+          reviewStats: { today: 12, last7Days: 84, last30Days: 320 }
         },
         {
           code: "UK",
@@ -453,7 +535,8 @@
           shipments: [
             { id: "LHR88Z", status: "Receiving", eta: "Feb 05", units: 180 }
           ],
-          warnings: []
+          warnings: [],
+          reviewStats: { today: 6, last7Days: 40, last30Days: 150 }
         },
         {
           code: "CA",
@@ -475,7 +558,8 @@
             { id: "YYZ40D", status: "In Transit", eta: "Feb 10", units: 140 },
             { id: "YYZ18K", status: "Planned", eta: "Feb 15", units: 220 }
           ],
-          warnings: ["Shipment YYZ40D missing carton content feed. Fix before delivery."]
+          warnings: ["Shipment YYZ40D missing carton content feed. Fix before delivery."],
+          reviewStats: { today: 4, last7Days: 24, last30Days: 96 }
         },
         {
           code: "AU",
@@ -496,7 +580,8 @@
           shipments: [
             { id: "SYD99P", status: "In Transit", eta: "Feb 12", units: 140 }
           ],
-          warnings: []
+          warnings: [],
+          reviewStats: { today: 2, last7Days: 12, last30Days: 44 }
         }
       ];
 
@@ -507,6 +592,9 @@
       const formatPercent = (value) => `${Math.round(value * 100)}%`;
       const formatCurrency = (value, currency) =>
         new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(value);
+
+      let stores = mockStores;
+
 
       function getVelocity(item) {
         return item.sales7d / 7;
@@ -547,38 +635,6 @@
           averageSellThrough,
           averageMargin
         };
-      }
-
-      function buildTransferOpportunities(allStores) {
-        const skuMap = new Map();
-        allStores.forEach((store) => {
-          store.inventory.forEach((item) => {
-            if (!skuMap.has(item.sku)) skuMap.set(item.sku, []);
-            skuMap.get(item.sku).push({
-              store: store.code,
-              title: item.title,
-              daysCover: getDaysCover(item)
-            });
-          });
-        });
-
-        const opportunitiesByStore = new Map();
-        allStores.forEach((store) => opportunitiesByStore.set(store.code, []));
-
-        skuMap.forEach((records, sku) => {
-          records.forEach((record) => {
-            records.forEach((other) => {
-              if (record.store === other.store) return;
-              if (record.daysCover > 180 && other.daysCover < 45) {
-                opportunitiesByStore
-                  .get(record.store)
-                  .push(`${sku} · ${record.title} → Potential transfer to ${other.store} (low cover)`);
-              }
-            });
-          });
-        });
-
-        return opportunitiesByStore;
       }
 
       function createCard(store, index) {
@@ -634,121 +690,135 @@
               <span class="pill">7-day sales ${formatNumber(metrics.totalSales7d)}</span>
             </div>
           </div>
-
-          <div class="section">
-            <h3>Marketplace Health</h3>
-            <div class="health-grid">
-              <div class="health-card"><span>IPI Score</span><strong>${formatNumber(store.ipiScore)}</strong></div>
-              <div class="health-card"><span>Storage Use</span><strong>${store.storageUtilization}%</strong></div>
-              <div class="health-card"><span>Stranded Units</span><strong>${formatNumber(metrics.stranded)}</strong></div>
-              <div class="health-card"><span>Suppressed Units</span><strong>${formatNumber(metrics.suppressed)}</strong></div>
-              <div class="health-card"><span>Aging Fee Risk</span><strong>${formatCurrency(store.agingRisk, "USD")}</strong></div>
-              <div class="health-card"><span>Account Warnings</span><strong>${formatNumber(store.warnings.length)}</strong></div>
-              <div class="health-card"><span>Avg Sell-through</span><strong>${formatPercent(metrics.averageSellThrough)}</strong></div>
-              <div class="health-card"><span>Avg Contribution</span><strong>${formatPercent(metrics.averageMargin)}</strong></div>
+          <div class="panel-content">
+            <div class="section">
+              <h3>Marketplace Health</h3>
+              <div class="health-grid">
+                <div class="health-card"><span>IPI Score</span><strong>${formatNumber(store.ipiScore)}</strong></div>
+                <div class="health-card"><span>Storage Use</span><strong>${store.storageUtilization}%</strong></div>
+                <div class="health-card"><span>Stranded Units</span><strong>${formatNumber(metrics.stranded)}</strong></div>
+                <div class="health-card"><span>Suppressed Units</span><strong>${formatNumber(metrics.suppressed)}</strong></div>
+                <div class="health-card"><span>Aging Fee Risk</span><strong>${formatCurrency(store.agingRisk, "USD")}</strong></div>
+                <div class="health-card"><span>Account Warnings</span><strong>${formatNumber(store.warnings.length)}</strong></div>
+                <div class="health-card"><span>Avg Sell-through</span><strong>${formatPercent(metrics.averageSellThrough)}</strong></div>
+                <div class="health-card"><span>Avg Contribution</span><strong>${formatPercent(metrics.averageMargin)}</strong></div>
+              </div>
             </div>
-          </div>
 
-          <div class="section">
-            <h3>Transfer Opportunities</h3>
-            ${buildTransferSection(store.code, opportunitiesByStore)}
-          </div>
-
-          <div class="section">
-            <h3>Inventory Snapshot</h3>
-            <div class="filter-row" data-panel-filters="${store.code}">
-              <button class="filter-chip" type="button" data-filter="low" aria-pressed="false">Low cover &lt; 90d</button>
-              <button class="filter-chip" type="button" data-filter="aged" aria-pressed="false">Aged 90+</button>
-              <button class="filter-chip" type="button" data-filter="inbound" aria-pressed="false">Inbound &gt; 0</button>
-              <button class="filter-chip" type="button" data-filter="stranded" aria-pressed="false">Stranded &gt; 0</button>
-              <button class="filter-chip" type="button" data-filter="suppressed" aria-pressed="false">Suppressed &gt; 0</button>
+            <div class="section">
+              <h3>Low Inventory (under 90 days of cover)</h3>
+              ${buildLowInventoryTable(store.inventory)}
             </div>
-            ${buildInventoryTable(store.inventory)}
-          </div>
 
-          <div class="section">
-            <h3>Inbound Shipments</h3>
-            ${buildShipmentsTable(store.shipments)}
-          </div>
+            <div class="section">
+              <h3>Inventory Snapshot</h3>
+              <div class="filter-row" data-panel-filters="${store.code}">
+                <button class="filter-chip" type="button" data-filter="low" aria-pressed="false">Low cover &lt; 90d</button>
+                <button class="filter-chip" type="button" data-filter="aged" aria-pressed="false">Aged 90+</button>
+                <button class="filter-chip" type="button" data-filter="inbound" aria-pressed="false">Inbound &gt; 0</button>
+                <button class="filter-chip" type="button" data-filter="stranded" aria-pressed="false">Stranded &gt; 0</button>
+                <button class="filter-chip" type="button" data-filter="suppressed" aria-pressed="false">Suppressed &gt; 0</button>
+              </div>
+              ${buildInventoryTable(store.inventory, store.code)}
+            </div>
 
-          <div class="section">
-            <h3>Account Health Warnings</h3>
-            ${buildWarnings(store.warnings)}
-          </div>
+            <div class="section">
+              <h3>Inbound Shipments</h3>
+              ${buildShipmentsTable(store.shipments)}
+            </div>
 
-          <div class="section">
-            <h3>Low Inventory (under 90 days of cover)</h3>
-            ${buildLowInventoryTable(store.inventory)}
+            <div class="section">
+              <h3>Account Health Warnings</h3>
+              ${buildWarnings(store.warnings)}
+            </div>
+
+            <div class="section">
+              <h3>Review Requests</h3>
+              <div class="health-grid">
+                <div class="health-card"><span>Today</span><strong>${formatNumber(store.reviewStats?.today ?? 0)}</strong></div>
+                <div class="health-card"><span>Last 7 days</span><strong>${formatNumber(store.reviewStats?.last7Days ?? 0)}</strong></div>
+                <div class="health-card"><span>Last 30 days</span><strong>${formatNumber(store.reviewStats?.last30Days ?? 0)}</strong></div>
+              </div>
+            </div>
+
+            <div class="section">
+              <h3>Reports Refresh</h3>
+              <div class="refresh-row">
+                <div>
+                  <p class="refresh-note">Use this to refresh the Planning report for this marketplace when you’re ready.</p>
+                  <small class="refresh-status" data-refresh-status="${store.code}">Status: idle</small>
+                </div>
+                <button class="refresh-button" type="button" data-refresh-button="${store.code}">Refresh Now</button>
+              </div>
+            </div>
           </div>
         `;
         return panel;
       }
 
-      function buildTransferSection(storeCode, opportunitiesByStore) {
-        const list = opportunitiesByStore.get(storeCode) || [];
-        if (!list.length) {
-          return `<div class="warning-box empty">No cross-market transfer opportunities flagged.</div>`;
-        }
+      function buildInventoryTable(items, storeCode) {
+        const sortedItems = [...items].sort((a, b) => (b.sales7d ?? 0) - (a.sales7d ?? 0));
         return `
-          <div class="opportunity-list">
-            ${list.map((entry) => `<div class="opportunity">${entry}</div>`).join("")}
+          <div class="table-block">
+            <table class="table" data-inventory-table data-collapsed="true" data-store-code="${storeCode}">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Title</th>
+                  <th>On hand</th>
+                  <th>Reserved</th>
+                  <th>Inbound</th>
+                  <th>7d sales</th>
+                  <th>Days of cover</th>
+                  <th>Reorder</th>
+                  <th>Sell-through</th>
+                  <th>Margin</th>
+                  <th>Stranded</th>
+                  <th>Suppressed</th>
+                  <th>Age 90+</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${sortedItems
+                  .map((item, idx) => {
+                    const daysCover = getDaysCover(item);
+                    const reorderUnits = getReorderUnits(item, 120);
+                    const isLow = daysCover < 90;
+                    return `
+                      <tr
+                        data-index="${idx}"
+                        data-low="${isLow}"
+                        data-aged="${item.age90plus}"
+                        data-inbound="${item.inbound > 0}"
+                        data-stranded="${item.stranded > 0}"
+                        data-suppressed="${item.suppressed > 0}"
+                      >
+                        <td data-label="SKU">${item.sku}</td>
+                        <td data-label="Title">${item.title}</td>
+                        <td data-label="On hand">${formatNumber(item.onHand)}</td>
+                        <td data-label="Reserved">${formatNumber(item.reserved)}</td>
+                        <td data-label="Inbound">${formatNumber(item.inbound)}</td>
+                        <td data-label="7d sales">${formatNumber(item.sales7d)}</td>
+                        <td data-label="Days of cover">${formatDays(daysCover)}</td>
+                        <td data-label="Reorder">${formatNumber(reorderUnits)}</td>
+                        <td data-label="Sell-through">${formatPercent(item.sellThrough)}</td>
+                        <td data-label="Margin">${formatPercent(item.margin)}</td>
+                        <td data-label="Stranded">${formatNumber(item.stranded)}</td>
+                        <td data-label="Suppressed">${formatNumber(item.suppressed)}</td>
+                        <td data-label="Age 90+">${item.age90plus ? "Yes" : "No"}</td>
+                      </tr>
+                    `;
+                  })
+                  .join("")}
+              </tbody>
+            </table>
+            <div class="table-footer">
+              <button class="expand-button" type="button" data-inventory-toggle aria-expanded="false">
+                <span>Show more</span>
+                <span class="arrow">▼</span>
+              </button>
+            </div>
           </div>
-        `;
-      }
-
-      function buildInventoryTable(items) {
-        return `
-          <table class="table" data-inventory-table>
-            <thead>
-              <tr>
-                <th>SKU</th>
-                <th>Title</th>
-                <th>On hand</th>
-                <th>Reserved</th>
-                <th>Inbound</th>
-                <th>7d sales</th>
-                <th>Days of cover</th>
-                <th>Reorder</th>
-                <th>Sell-through</th>
-                <th>Margin</th>
-                <th>Stranded</th>
-                <th>Suppressed</th>
-                <th>Age 90+</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${items
-                .map((item) => {
-                  const daysCover = getDaysCover(item);
-                  const reorderUnits = getReorderUnits(item, 120);
-                  const isLow = daysCover < 90;
-                  return `
-                    <tr
-                      data-low="${isLow}"
-                      data-aged="${item.age90plus}"
-                      data-inbound="${item.inbound > 0}"
-                      data-stranded="${item.stranded > 0}"
-                      data-suppressed="${item.suppressed > 0}"
-                    >
-                      <td data-label="SKU">${item.sku}</td>
-                      <td data-label="Title">${item.title}</td>
-                      <td data-label="On hand">${formatNumber(item.onHand)}</td>
-                      <td data-label="Reserved">${formatNumber(item.reserved)}</td>
-                      <td data-label="Inbound">${formatNumber(item.inbound)}</td>
-                      <td data-label="7d sales">${formatNumber(item.sales7d)}</td>
-                      <td data-label="Days of cover">${formatDays(daysCover)}</td>
-                      <td data-label="Reorder">${formatNumber(reorderUnits)}</td>
-                      <td data-label="Sell-through">${formatPercent(item.sellThrough)}</td>
-                      <td data-label="Margin">${formatPercent(item.margin)}</td>
-                      <td data-label="Stranded">${formatNumber(item.stranded)}</td>
-                      <td data-label="Suppressed">${formatNumber(item.suppressed)}</td>
-                      <td data-label="Age 90+">${item.age90plus ? "Yes" : "No"}</td>
-                    </tr>
-                  `;
-                })
-                .join("")}
-            </tbody>
-          </table>
         `;
       }
 
@@ -834,15 +904,20 @@
 
       function wireFilters(panel) {
         const filterRow = panel.querySelector("[data-panel-filters]");
-        if (!filterRow) return;
+        const table = panel.querySelector("[data-inventory-table]");
+        const toggle = panel.querySelector("[data-inventory-toggle]");
+        if (!filterRow || !table) return;
+
         const chips = Array.from(filterRow.querySelectorAll(".filter-chip"));
         const rows = Array.from(panel.querySelectorAll("[data-inventory-table] tbody tr"));
 
         const applyFilters = () => {
           const active = chips.filter((chip) => chip.getAttribute("aria-pressed") === "true").map((chip) => chip.dataset.filter);
+          const isCollapsed = table.dataset.collapsed === "true";
           rows.forEach((row) => {
-            const visible = active.every((filter) => row.dataset[filter] === "true");
-            row.style.display = visible ? "" : "none";
+            const matchesFilters = active.every((filter) => row.dataset[filter] === "true");
+            const hiddenByCollapse = isCollapsed && Number(row.dataset.index ?? 0) >= 20;
+            row.style.display = matchesFilters && !hiddenByCollapse ? "" : "none";
           });
         };
 
@@ -853,16 +928,32 @@
             applyFilters();
           });
         });
+
+        if (toggle) {
+          toggle.addEventListener("click", () => {
+            const collapsed = table.dataset.collapsed === "true";
+            table.dataset.collapsed = collapsed ? "false" : "true";
+            toggle.setAttribute("aria-expanded", collapsed ? "true" : "false");
+            const label = toggle.querySelector("span");
+            if (label) {
+              label.textContent = collapsed ? "Show less" : "Show more";
+            }
+            applyFilters();
+          });
+        }
+
+        applyFilters();
       }
 
       function render() {
-        const opportunitiesByStore = buildTransferOpportunities(stores);
+        cardsEl.innerHTML = "";
+        panelsEl.innerHTML = "";
 
         stores.forEach((store, index) => {
           const card = createCard(store, index);
           cardsEl.appendChild(card);
 
-          const panel = createPanel(store, opportunitiesByStore);
+          const panel = createPanel(store);
           panelsEl.appendChild(panel);
           wireFilters(panel);
 
@@ -884,7 +975,55 @@
         });
       }
 
-      render();
+      async function loadStores() {
+        try {
+          const response = await fetch("http://localhost:4242/api/stores");
+          if (!response.ok) return;
+          const data = await response.json();
+          if (Array.isArray(data.stores) && data.stores.length) {
+            stores = data.stores;
+          }
+        } catch (error) {
+          // keep mock data if API is not running
+        }
+      }
+
+      async function boot() {
+        await loadStores();
+        render();
+        wireRefreshButtons();
+      }
+
+      function wireRefreshButtons() {
+        document.querySelectorAll("[data-refresh-button]").forEach((button) => {
+          button.addEventListener("click", async () => {
+            const store = button.getAttribute("data-refresh-button");
+            if (!store) return;
+            const statusEl = document.querySelector(`[data-refresh-status=\"${store}\"]`);
+            button.setAttribute("disabled", "true");
+            if (statusEl) statusEl.textContent = "Status: refreshing...";
+
+            try {
+              const response = await fetch(`http://localhost:4242/api/reports/planning/refresh?store=${store}`, {
+                method: "POST"
+              });
+              if (!response.ok) {
+                if (statusEl) statusEl.textContent = "Status: refresh failed";
+              } else {
+                if (statusEl) statusEl.textContent = "Status: refresh triggered";
+              }
+            } catch (error) {
+              if (statusEl) statusEl.textContent = "Status: refresh failed";
+            } finally {
+              setTimeout(() => {
+                button.removeAttribute("disabled");
+              }, 4000);
+            }
+          });
+        });
+      }
+
+      boot();
     </script>
   </body>
 </html>

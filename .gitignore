@@ -1,0 +1,13 @@
+.DS_Store
+
+# Node / build artifacts
+server/node_modules/
+server/dist/
+
+# Local secrets
+server/.env
+server/.env.*
+
+# Local caches / logs
+server/data/
+*.log
